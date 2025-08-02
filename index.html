@@ -1,1 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime Product Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --danger-color: #ea4335;
+            --warning-color: #fbbc05;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --text-color: #212529;
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+        }
 
+        [data-theme="dark"] {
+            --primary-color: #8ab4f8;
+            --secondary-color: #81c995;
+            --danger-color: #f28b82;
+            --warning-color: #fde293;
+            --light-color: #202124;
+            --dark-color: #e8eaed;
+            --text-color: #e8eaed;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --border-color: #5f6368;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            color: var(--primary-color);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: var(--text-color);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .product-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-thumbnail {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 15px;
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .product-description {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-price {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .product-category {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-box input {
+            padding-left: 35px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .filter-sort {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-sort select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 5px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            min-width: 40px;
+        }
+
+        .pagination button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .loader {
+            display: none;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left-color: var(--secondary-color);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger-color);
+        }
+
+        @media (max-width: 768px) {
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Realtime Product Dashboard</h1>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="dashboard">Dashboard</div>
+            <div class="tab" data-tab="add-product">Add Product</div>
+            <div class="tab" data-tab="firebase-products">Firebase Products</div>
+        </div>
+
+        <div class="tab-content active" id="dashboard">
+            <div class="controls">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search products...">
+                </div>
+                <div class="filter-sort">
+                    <select id="categoryFilter">
+                        <option value="">All Categories</option>
+                    </select>
+                    <select id="sortBy">
+                        <option value="default">Sort By</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
+                        <option value="name-asc">Name: A to Z</option>
+                        <option value="name-desc">Name: Z to A</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="loader" id="apiLoader"></div>
+            <div class="products-grid" id="productsContainer"></div>
+
+            <div class="pagination" id="pagination"></div>
+        </div>
+
+        <div class="tab-content" id="add-product">
+            <form id="productForm">
+                <div class="form-group">
+                    <label for="productTitle">Title</label>
+                    <input type="text" id="productTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Price</label>
+                    <input type="number" id="productPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="productThumbnail">Thumbnail URL</label>
+                    <input type="url" id="productThumbnail" required>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Category</label>
+                    <input type="text" id="productCategory" required>
+                </div>
+                <button type="submit" class="btn-primary">Add Product</button>
+            </form>
+        </div>
+
+        <div class="tab-content" id="firebase-products">
+            <div class="loader" id="firebaseLoader"></div>
+            <div class="products-grid" id="firebaseProductsContainer"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js">
+
+      // Firebase configuration
+const firebaseConfig = {
+    databaseURL: "https://realtime-ptoduct-dshboard-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+
+// DOM Elements
+const themeToggle = document.getElementById('themeToggle');
+const tabs = document.querySelectorAll('.tab');
+const tabContents = document.querySelectorAll('.tab-content');
+const productsContainer = document.getElementById('productsContainer');
+const firebaseProductsContainer = document.getElementById('firebaseProductsContainer');
+const searchInput = document.getElementById('searchInput');
+const categoryFilter = document.getElementById('categoryFilter');
+const sortBy = document.getElementById('sortBy');
+const pagination = document.getElementById('pagination');
+const productForm = document.getElementById('productForm');
+const apiLoader = document.getElementById('apiLoader');
+const firebaseLoader = document.getElementById('firebaseLoader');
+const toast = document.getElementById('toast');
+
+// App State
+let allProducts = [];
+let filteredProducts = [];
+let currentPage = 1;
+const productsPerPage = 9;
+let categories = [];
+
+// Initialize the app
+document.addEventListener('DOMContentLoaded', () => {
+    // Load theme preference
+    loadTheme();
+    
+    // Set up event listeners
+    setupEventListeners();
+    
+    // Fetch products from API
+    fetchProducts();
+    
+    // Fetch products from Firebase
+    fetchFirebaseProducts();
+});
+
+// Theme functionality
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    if (savedTheme === 'dark') {
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    } else {
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    if (newTheme === 'dark') {
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    } else {
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+    }
+}
+
+// Event Listeners
+function setupEventListeners() {
+    // Theme toggle
+    themeToggle.addEventListener('click', toggleTheme);
+    
+    // Tab switching
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            tab.classList.add('active');
+            const tabId = tab.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+            
+            if (tabId === 'firebase-products') {
+                fetchFirebaseProducts();
+            }
+        });
+    });
+    
+    // Search and filter
+    searchInput.addEventListener('input', handleSearchAndFilter);
+    categoryFilter.addEventListener('change', handleSearchAndFilter);
+    sortBy.addEventListener('change', handleSearchAndFilter);
+    
+    // Product form submission
+    productForm.addEventListener('submit', handleProductSubmit);
+}
+
+// API Products Functions
+async function fetchProducts() {
+    try {
+        apiLoader.style.display = 'block';
+        productsContainer.innerHTML = '';
+        
+        const response = await fetch('https://dummyjson.com/products');
+        const data = await response.json();
+        
+        allProducts = data.products;
+        
+        // Extract unique categories
+        categories = [...new Set(allProducts.map(product => product.category))];
+        populateCategoryFilter();
+        
+        // Load pagination state from localStorage
+        const savedPage = localStorage.getItem('currentPage');
+        if (savedPage) {
+            currentPage = parseInt(savedPage);
+        }
+        
+        filterAndRenderProducts();
+    } catch (error) {
+        showToast('Failed to fetch products', 'error');
+        console.error('Error fetching products:', error);
+    } finally {
+        apiLoader.style.display = 'none';
+    }
+}
+
+function populateCategoryFilter() {
+    categoryFilter.innerHTML = '<option value="">All Categories</option>';
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+        categoryFilter.appendChild(option);
+    });
+}
+
+function handleSearchAndFilter() {
+    currentPage = 1;
+    localStorage.setItem('currentPage', currentPage);
+    filterAndRenderProducts();
+}
+
+function filterAndRenderProducts() {
+    // Filter by search term
+    const searchTerm = searchInput.value.toLowerCase();
+    filteredProducts = allProducts.filter(product => 
+        product.title.toLowerCase().includes(searchTerm) || 
+        product.description.toLowerCase().includes(searchTerm)
+    );
+    
+    // Filter by category
+    const selectedCategory = categoryFilter.value;
+    if (selectedCategory) {
+        filteredProducts = filteredProducts.filter(
+            product => product.category === selectedCategory
+        );
+    }
+    
+    // Sort products
+    const sortValue = sortBy.value;
+    switch (sortValue) {
+        case 'price-asc':
+            filteredProducts.sort((a, b) => a.price - b.price);
+            break;
+        case 'price-desc':
+            filteredProducts.sort((a, b) => b.price - a.price);
+            break;
+        case 'name-asc':
+            filteredProducts.sort((a, b) => a.title.localeCompare(b.title));
+            break;
+        case 'name-desc':
+            filteredProducts.sort((a, b) => b.title.localeCompare(a.title));
+            break;
+        default:
+            // Default sorting (no change)
+            break;
+    }
+    
+    renderProducts();
+    renderPagination();
+}
+
+function renderProducts() {
+    productsContainer.innerHTML = '';
+    
+    // Calculate pagination
+    const startIndex = (currentPage - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+    const productsToDisplay = filteredProducts.slice(startIndex, endIndex);
+    
+    if (productsToDisplay.length === 0) {
+        productsContainer.innerHTML = '<p>No products found</p>';
+        return;
+    }
+    
+    productsToDisplay.forEach(product => {
+        const productCard = createProductCard(product);
+        productsContainer.appendChild(productCard);
+    });
+}
+
+function createProductCard(product) {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    
+    card.innerHTML = `
+        <img src="${product.thumbnail}" alt="${product.title}" class="product-thumbnail">
+        <div class="product-info">
+            <span class="product-category">${product.category}</span>
+            <h3 class="product-title">${product.title}</h3>
+            <p class="product-description">${product.description}</p>
+            <p class="product-price">$${product.price.toFixed(2)}</p>
+        </div>
+    `;
+    
+    return card;
+}
+
+function renderPagination() {
+    pagination.innerHTML = '';
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+    
+    if (totalPages <= 1) return;
+    
+    // Previous button
+    const prevButton = document.createElement('button');
+    prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+    prevButton.disabled = currentPage === 1;
+    prevButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            localStorage.setItem('currentPage', currentPage);
+            filterAndRenderProducts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+    pagination.appendChild(prevButton);
+    
+    // Page buttons
+    for (let i = 1; i <= totalPages; i++) {
+        const pageButton = document.createElement('button');
+        pageButton.textContent = i;
+        if (i === currentPage) {
+            pageButton.classList.add('active');
+        }
+        pageButton.addEventListener('click', () => {
+            currentPage = i;
+            localStorage.setItem('currentPage', currentPage);
+            filterAndRenderProducts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        pagination.appendChild(pageButton);
+    }
+    
+    // Next button
+    const nextButton = document.createElement('button');
+    nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+    nextButton.disabled = currentPage === totalPages;
+    nextButton.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            localStorage.setItem('currentPage', currentPage);
+            filterAndRenderProducts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+    pagination.appendChild(nextButton);
+}
+
+// Firebase Products Functions
+async function fetchFirebaseProducts() {
+    try {
+        firebaseLoader.style.display = 'block';
+        firebaseProductsContainer.innerHTML = '';
+        
+        const response = await fetch(${firebaseConfig.databaseURL}/products.json);
+        const data = await response.json();
+        
+        if (!data) {
+            firebaseProductsContainer.innerHTML = '<p>No products found in Firebase</p>';
+            return;
+        }
+        
+        const products = Object.entries(data).map(([key, value]) => ({
+            id: key,
+            ...value
+        }));
+        
+        renderFirebaseProducts(products);
+    } catch (error) {
+        showToast('Failed to fetch Firebase products', 'error');
+        console.error('Error fetching Firebase products:', error);
+    } finally {
+        firebaseLoader.style.display = 'none';
+    }
+}
+
+function renderFirebaseProducts(products) {
+    firebaseProductsContainer.innerHTML = '';
+    
+    if (products.length === 0) {
+        firebaseProductsContainer.innerHTML = '<p>No products found in Firebase</p>';
+        return;
+    }
+    
+    products.forEach(product => {
+        const productCard = createFirebaseProductCard(product);
+        firebaseProductsContainer.appendChild(productCard);
+    });
+}
+
+function createFirebaseProductCard(product) {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.dataset.id = product.id;
+    
+    card.innerHTML = `
+        <img src="${product.thumbnail}" alt="${product.title}" class="product-thumbnail">
+        <div class="product-info">
+            <span class="product-category">${product.category}</span>
+            <h3 class="product-title">${product.title}</h3>
+            <p class="product-description">${product.description}</p>
+            <p class="product-price">$${product.price.toFixed(2)}</p>
+            <div class="product-actions">
+                <button class="btn-warning edit-btn"><i class="fas fa-edit"></i> Edit</button>
+                <button class="btn-danger delete-btn"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+        </div>
+    `;
+    
+    // Add event listeners to buttons
+    const deleteBtn = card.querySelector('.delete-btn');
+    deleteBtn.addEventListener('click', () => deleteProduct(product.id));
+    
+    const editBtn = card.querySelector('.edit-btn');
+    editBtn.addEventListener('click', () => enableEditMode(card, product));
+    
+    return card;
+}
+
+async function deleteProduct(productId) {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    
+    try {
+        const response = await fetch(${firebaseConfig.databaseURL}/products/${productId}.json, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            showToast('Product deleted successfully', 'success');
+            fetchFirebaseProducts();
+        } else {
+            throw new Error('Failed to delete product');
+        }
+    } catch (error) {
+        showToast('Failed to delete product', 'error');
+        console.error('Error deleting product:', error);
+    }
+}
+
+function enableEditMode(card, product) {
+    const productInfo = card.querySelector('.product-info');
+    
+    productInfo.innerHTML = `
+        <div class="form-group">
+            <label>Title</label>
+            <input type="text" value="${product.title}" class="edit-title">
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea class="edit-description">${product.description}</textarea>
+        </div>
+        <div class="form-group">
+            <label>Price</label>
+            <input type="number" value="${product.price}" step="0.01" class="edit-price">
+        </div>
+        <div class="form-group">
+            <label>Thumbnail URL</label>
+            <input type="url" value="${product.thumbnail}" class="edit-thumbnail">
+        </div>
+        <div class="form-group">
+            <label>Category</label>
+            <input type="text" value="${product.category}" class="edit-category">
+        </div>
+        <div class="product-actions">
+            <button class="btn-secondary save-btn"><i class="fas fa-save"></i> Save</button>
+            <button class="btn-danger cancel-btn"><i class="fas fa-times"></i> Cancel</button>
+        </div>
+    `;
+    
+    const saveBtn = productInfo.querySelector('.save-btn');
+    saveBtn.addEventListener('click', () => saveProductChanges(product.id, card));
+    
+    const cancelBtn = productInfo.querySelector('.cancel-btn');
+    cancelBtn.addEventListener('click', () => {
+        // Re-render the product card
+        card.innerHTML = '';
+        card.appendChild(createFirebaseProductCard(product));
+    });
+}
+
+async function saveProductChanges(productId, card) {
+    const updatedProduct = {
+        title: card.querySelector('.edit-title').value,
+        description: card.querySelector('.edit-description').value,
+        price: parseFloat(card.querySelector('.edit-price').value),
+        thumbnail: card.querySelector('.edit-thumbnail').value,
+        category: card.querySelector('.edit-category').value
+    };
+    
+    try {
+        const response = await fetch(${firebaseConfig.databaseURL}/products/${productId}.json, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedProduct)
+        });
+        
+        if (response.ok) {
+            showToast('Product updated successfully', 'success');
+            fetchFirebaseProducts();
+        } else {
+            throw new Error('Failed to update product');
+        }
+    } catch (error) {
+        showToast('Failed to update product', 'error');
+        console.error('Error updating product:', error);
+    }
+}
+
+// Form Handling
+async function handleProductSubmit(e) {
+    e.preventDefault();
+    
+    const newProduct = {
+        title: document.getElementById('productTitle').value,
+        description: document.getElementById('productDescription').value,
+        price: parseFloat(document.getElementById('productPrice').value),
+        thumbnail: document.getElementById('productThumbnail').value,
+        category: document.getElementById('productCategory').value
+    };
+    
+    try {
+        const response = await fetch(${firebaseConfig.databaseURL}/products.json, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newProduct)
+        });
+        
+        if (response.ok) {
+            showToast('Product added successfully', 'success');
+            productForm.reset();
+            fetchFirebaseProducts();
+            
+            // Switch to Firebase products tab
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            document.querySelector('.tab[data-tab="firebase-products"]').classList.add('active');
+            document.getElementById('firebase-products').classList.add('active');
+        } else {
+            throw new Error('Failed to add product');
+        }
+    } catch (error) {
+        showToast('Failed to add product', 'error');
+        console.error('Error adding product:', error);
+    }
+}
+
+// Toast Notification
+function showToast(message, type = 'info') {
+    toast.textContent = message;
+    toast.className = 'toast';
+    toast.classList.add(type);
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+    </script>
+</body>
+</html>
